@@ -93,7 +93,7 @@ function love.draw()
     end
     love.graphics.setColor (unpack(colorFood))
     love.graphics.rectangle ("fill",food.x*8,food.y*8,8,8)
-    love.graphics.setColor (0,0,0)
+    love.graphics.setColor (255,255,255)
     love.graphics.print("Punkte: "..score)
 end -- draw end
 
