@@ -16,8 +16,8 @@ function gotFood()
 end
 
 function setFood()
-    food.x=math.random(0, love.graphics.getWidth()/8-1)
-    food.y=math.random(0, love.graphics.getHeight()/8-1)
+    food.x = love.math.random(0, love.graphics.getWidth()/8-1)
+    food.y = love.math.random(0, love.graphics.getHeight()/8-1)
     for i,v in pairs(snake) do
         if v.x==food.x and v.y==food.y then
             setFood()
@@ -30,25 +30,25 @@ end
 function love.load()
   gameState = 1
   
-  t=0 --time
+  t = 0 --time
   
-  score=0
+  score = 0
   --ersten drei Körperteile der Snake
-  snake={
-    {x=15,y=8, color = colorBody}, --tail
-    {x=14,y=8, color = colorBody}, --neck
-    {x=13,y=8, color = colorHead}, --head
+  snake = {
+    {x = 15, y = 8, color = colorBody}, --tail
+    {x = 14, y = 8, color = colorBody}, --neck
+    {x = 13, y = 8, color = colorHead}, --head
   }
   --Ablage des Futters
-  food={x=25,y=25}
+  food = {x = 25, y = 25}
 
   --Richtung der Snake
   dirs={
-  [0]={x= 0,y=-1}, --up
-  [1]={x= 0,y= 1}, --down
-  [2]={x=-1,y= 0}, --left
-  [3]={x= 1,y= 0} --right
-  }
+      [0]={x= 0,y=-1}, --up
+      [1]={x= 0,y= 1}, --down
+      [2]={x=-1,y= 0}, --left
+      [3]={x= 1,y= 0} --right
+      }
 
 
   dir=dirs[0]
