@@ -11,11 +11,21 @@ end
 
 function gotFood()
     if head.x==food.x and head.y==food.y then
+      b = love.math.random(1,3)
+        if b == 1 then
+          love.audio.play(burp1)
+        elseif b == 2 then
+          love.audio.play(burp2)
+        else
+          love.audio.play(burp3)
+        end
         return true
     end
 end
 
 function setFood()
+    a = food.x
+    b = food.y 
     food.x = love.math.random(0, love.graphics.getWidth()/8-1)
     food.y = love.math.random(0, love.graphics.getHeight()/8-1)
     for i,v in pairs(snake) do
@@ -25,13 +35,8 @@ function setFood()
     end
 end
 
-
--- load start
-function love.load()
-  gameState = 1
-  
+function init() -- beherbergt Grundeinstellungen
   t = 0 --time
-  
   score = 0
   --ersten drei Körperteile der Snake
   snake = {
@@ -41,7 +46,8 @@ function love.load()
   }
   --Ablage des Futters
   food = {x = 25, y = 25}
-
+  a = food.x  -- stores values for particle emit
+  b = food.y  -- stores values for particle emit
   --Richtung der Snake
   dirs={
       [0]={x= 0,y=-1}, --up
@@ -49,9 +55,28 @@ function love.load()
       [2]={x=-1,y= 0}, --left
       [3]={x= 1,y= 0} --right
       }
-
-
   dir=dirs[0]
+  gameState = 1
+end 
+
+-- load start
+function love.load()
+ burp1 = love.audio.newSource("assets/eat1.wav")
+ burp2 = love.audio.newSource("assets/eat2.wav")
+ burp3 = love.audio.newSource("assets/eat3.wav")
+ gameMusic = love.audio.newSource("assets/game.mp3")
+ deathMusic = love.audio.newSource("assets/death.mp3")
+
+ init() -- lädt Grundeinstellungen zum Spiel
+
+-- Partikelsystem Setup
+ local particleImg = love.graphics.newImage("assets/particle.png")
+ pSystem = love.graphics.newParticleSystem(particleImg, 32)
+ pSystem:setParticleLifetime(0.6,1.5)
+ pSystem:setLinearAcceleration(-30, -30, 30, 30)
+ pSystem:setSpeed(0)
+ pSystem:setRotation(10,20)
+
 end -- load end
 
 --##############################################################################
@@ -63,12 +88,21 @@ function love.update(dt)
   head = snake [#snake]   -- Kopf ist immer am Ende der Tabelle     
   neck = snake [#snake-1] -- der Nacken ist in der vorletzten Spalte
 
+  pSystem:update(dt)
+
   for i, v in pairs(snake) do
     if i~=#snake and v.x == head.x and v.y == head.y then
-        gameState = 2
+        gameState = 3
     end
   end
   
+  if gameState == 3 then
+        love.audio.stop(gameMusic)
+        love.audio.play(deathMusic)
+  elseif gameState == 2 then
+        love.audio.stop(deathMusic)
+        love.audio.play(gameMusic)
+  end
 
   if update() then
     head.color = colorBody
@@ -76,8 +110,8 @@ function love.update(dt)
     if not gotFood() then
       table.remove(snake,1)
     else
-      radiusSegment = radiusSegment * 1.1
-      score = score + 1      
+      score = score + 1   
+      particleCreate()   --Aktiviert das Ausstoßen der Partikel
       setFood() 
     end
   end
@@ -101,7 +135,18 @@ end -- update end
 -- draw start
 function love.draw()
 
+
+
   if gameState == 1 then
+    love.graphics.setColor(255, 255, 255)
+    love.graphics.print("NIMMERSATT - by Möhrchie and Steffen", 10, love.graphics.getWidth()/3) 
+    love.graphics.print("Press ENTER to grow and consume yourself!", 30, (love.graphics.getWidth()/3)+20)
+      if love.keyboard.isDown("return") then
+        gameState = 2
+      end
+  end
+
+  if gameState == 2 then
       for i,v in pairs(snake) do
           love.graphics.setColor (unpack(v.color))
           --love.graphics.rectangle ("fill",v.x*8,v.y*heightSegment,widthSegment,heightSegment)
@@ -116,9 +161,23 @@ function love.draw()
       love.graphics.print("Zeit: "..string.format("%.0f", t2), 250, 0)
   end
   
-  if gameState == 2 then
-    love.graphics.printf("GAME OVER    Punkt: "..score, 0, love.graphics.getHeight()/2,love.graphics.getWidth(),"center")
+
+  love.graphics.draw(pSystem, a * 8, b * 8) -- Definiert den Ort der ausgestoßenen Partikel
+
+  function particleCreate() -- Partikelausstoß (Anzahl)
+    pSystem:emit(32)
+  end
+
+  if gameState == 3 then
+    love.graphics.setColor(255, 255, 255)
+    love.graphics.print("GAME OVER    Punkte: "..score, 30, (love.graphics.getWidth()/3)+20)
+    love.graphics.setColor(255, 0, 0)
+    love.graphics.printf("Press ENTER to die again!", 0, love.graphics.getHeight()/2,love.graphics.getWidth(),"center")
+      if love.keyboard.isDown("return") then
+        init() -- reset der Grundeinstellungen
+      end
     --love.graphics.printf(
   end
+
 end -- draw end
 
